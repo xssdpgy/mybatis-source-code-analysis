@@ -273,6 +273,14 @@
       <version>1.11.2</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- 引入mysql-connector-java连接mysql，进行测试 -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.47</version>
+    </dependency>
+
   </dependencies>
 
   <build>

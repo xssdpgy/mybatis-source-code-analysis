@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- 具体选择哪个日志实现工具由MyBatis的内置日志工厂确定
+         日志实现优先级  SLF4J > Apache Commons Logging > Log4j 2 > Log4j > JDK logging
+         如果有其他日志实现的话，需要指定固定的日志实现
+         -->
+        <!--  <setting name="logImpl" value="LOG4J" /> -->
+        <!-- <setting name="aggressiveLazyLoading" value="false"/> -->
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="role" type="com.zang.entity.Role"/>
+    </typeAliases>
+    <typeHandlers>
+        <typeHandler jdbcType="VARCHAR" javaType="string" handler="com.zang.handler.StringHandler"/>
+    </typeHandlers>
+    <!-- 定义数据库的信息，默认使用development数据库构建环境 -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC" />
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver" />
+                <!-- 本地使用数据库版本为5.7.25，设置useSSL=false以防止控制台警告 -->
+                <property name="url" value="jdbc:mysql://localhost:3306/mybatis??useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false" />
+                <property name="username" value="root" />
+                <property name="password" value="123" />
+            </dataSource>
+        </environment>
+    </environments>
+    <!-- 定义映射器 -->
+    <mappers>
+        <package name="com.zang.mapper"/>
+    </mappers>
+</configuration>
