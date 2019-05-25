@@ -32,16 +32,18 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
 /**
+ * 默认的SqlSessionFactory，SqlSessionFactory是一个接口，DefaultSqlSessionFactory是他的实现类
  * @author Clinton Begin
  */
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
-
+  //通过Configuration来构造SqlSession,设置Configuration为 final：不可变
   private final Configuration configuration;
 
   public DefaultSqlSessionFactory(Configuration configuration) {
     this.configuration = configuration;
   }
-
+  //最终都会调用2种方法：openSessionFromDataSource,openSessionFromConnection
+  //以下6个方法都会调用openSessionFromDataSource
   @Override
   public SqlSession openSession() {
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
@@ -72,6 +74,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return openSessionFromDataSource(execType, null, autoCommit);
   }
 
+  //以下2个方法都会调用openSessionFromConnection
   @Override
   public SqlSession openSession(Connection connection) {
     return openSessionFromConnection(configuration.getDefaultExecutorType(), connection);
