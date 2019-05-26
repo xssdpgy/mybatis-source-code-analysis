@@ -134,6 +134,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
       }
       final Environment environment = configuration.getEnvironment();
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      //与openSessionFromDataSource区别在于这里是根据Connection创建Transaction
       final Transaction tx = transactionFactory.newTransaction(connection);
       final Executor executor = configuration.newExecutor(tx, execType);
       return new DefaultSqlSession(configuration, executor, autoCommit);

@@ -18,9 +18,20 @@ package org.apache.ibatis.session;
 import java.sql.Connection;
 
 /**
+ * 事务隔离级别，是一个枚举类型
  * @author Clinton Begin
  */
 public enum TransactionIsolationLevel {
+
+  /**
+   * NONE：无
+   * READ_COMMITTED：读已提交，即能够读到那些已经提交的数据，自然能够防止脏读，但是无法限制不可重复读和幻读
+   * READ_UNCOMMITTED：读未提交，即能够读取到没有被提交的数据，所以很明显这个级别的隔离机制无法解决脏读、不可重复读、幻读中的任何一种，因此很少使用
+   * REPEATABLE_READ：重复读取，即在数据读出来之后加锁，类似"select * from XXX for update"，明确数据读取出来就是为了更新用的，所以要加一把锁，防止别人修改它。REPEATABLE_READ的意思也类似，读取了一条数据，这个事务不结束，别的事务就不可以改这条记录，这样就解决了脏读、不可重复读的问题，但是幻读的问题还是无法解决
+   * SERIALIZABLE：串行化，最高的事务隔离级别，不管多少事务，挨个运行完一个事务的所有子事务之后才可以执行另外一个事务里面的所有子事务，这样就解决了脏读、不可重复读和幻读的问题
+   *
+   */
+
   NONE(Connection.TRANSACTION_NONE),
   READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED),
   READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
