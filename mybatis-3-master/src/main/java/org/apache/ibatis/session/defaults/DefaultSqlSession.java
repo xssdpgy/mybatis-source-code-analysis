@@ -63,28 +63,35 @@ public class DefaultSqlSession implements SqlSession {
     this.autoCommit = autoCommit;
   }
 
+  //默认非自动提交
   public DefaultSqlSession(Configuration configuration, Executor executor) {
     this(configuration, executor, false);
   }
 
+//selectOne方法  2个
   @Override
   public <T> T selectOne(String statement) {
     return this.selectOne(statement, null);
   }
 
+  //核心selectOne，上面的selectOne方法也转而调用该方法
   @Override
   public <T> T selectOne(String statement, Object parameter) {
+    //如果得到0条则返回null，如果得到多条则报TooManyResultsException
     // Popular vote was to return null on 0 results and throw exception on too many.
+    //转而调用selectList
     List<T> list = this.selectList(statement, parameter);
     if (list.size() == 1) {
       return list.get(0);
     } else if (list.size() > 1) {
       throw new TooManyResultsException("Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
     } else {
+      //注意：当没有查询到结果的时候就会返回null。一般建议在mapper中编写resultType的时候使用包装类型，而不是基本类型，比如推荐使用Integer而不是int。这样就可以避免NPE
       return null;
     }
   }
 
+//selectMap方法  3个
   @Override
   public <K, V> Map<K, V> selectMap(String statement, String mapKey) {
     return this.selectMap(statement, null, mapKey, RowBounds.DEFAULT);
@@ -95,16 +102,20 @@ public class DefaultSqlSession implements SqlSession {
     return this.selectMap(statement, parameter, mapKey, RowBounds.DEFAULT);
   }
 
+  //核心selectMap实现
   @Override
   public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds) {
+    //转而去调用selectList
     final List<? extends V> list = selectList(statement, parameter, rowBounds);
     final DefaultMapResultHandler<K, V> mapResultHandler = new DefaultMapResultHandler<>(mapKey,
             configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
     final DefaultResultContext<V> context = new DefaultResultContext<>();
+    //循环用DefaultMapResultHandler处理每条记录
     for (V o : list) {
       context.nextResultObject(o);
       mapResultHandler.handleResult(context);
     }
+    //这个DefaultMapResultHandler里面存了所有已处理的记录(内部实现可能就是一个Map)，最后再返回一个Map
     return mapResultHandler.getMappedResults();
   }
 
@@ -118,11 +129,15 @@ public class DefaultSqlSession implements SqlSession {
     return selectCursor(statement, parameter, RowBounds.DEFAULT);
   }
 
+  //核心selectCursor实现
   @Override
   public <T> Cursor<T> selectCursor(String statement, Object parameter, RowBounds rowBounds) {
     try {
+      //根据statement找到对应的MappedStatement
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //转而用执行器来查询结果
       Cursor<T> cursor = executor.queryCursor(ms, wrapCollection(parameter), rowBounds);
+      //累计存储Cursor
       registerCursor(cursor);
       return cursor;
     } catch (Exception e) {
@@ -132,6 +147,7 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+//selectList方法 作为selectOne和selectMap的实现   3个
   @Override
   public <E> List<E> selectList(String statement) {
     return this.selectList(statement, null);
@@ -142,10 +158,13 @@ public class DefaultSqlSession implements SqlSession {
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
+  //核心selectList实现
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+      //根据statement找到对应的MappedStatement
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //转而用执行器来查询结果,注意这里传入的ResultHandler是null
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -164,6 +183,7 @@ public class DefaultSqlSession implements SqlSession {
     select(statement, null, RowBounds.DEFAULT, handler);
   }
 
+  ////核心select,带有ResultHandler，和selectList代码区别在于ResultHandler
   @Override
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
