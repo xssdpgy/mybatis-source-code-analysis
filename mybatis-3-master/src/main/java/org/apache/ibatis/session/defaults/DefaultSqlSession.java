@@ -119,6 +119,8 @@ public class DefaultSqlSession implements SqlSession {
     return mapResultHandler.getMappedResults();
   }
 
+//selectCursor方法  3个
+//作用：用于查询百万级的数据，使用游标可以节省内存的消耗，不需要一次性取出所有数据，可以进行逐条处理或逐条取出部分批量处理。
   @Override
   public <T> Cursor<T> selectCursor(String statement) {
     return selectCursor(statement, null);
@@ -188,6 +190,7 @@ public class DefaultSqlSession implements SqlSession {
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //执行器来执行query
       executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -196,26 +199,33 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+//insert方法     2个
   @Override
   public int insert(String statement) {
     return insert(statement, null);
   }
 
+  //核心insert方法
   @Override
   public int insert(String statement, Object parameter) {
+    //insert是调用update
     return update(statement, parameter);
   }
 
+//update方法    2个
   @Override
   public int update(String statement) {
     return update(statement, null);
   }
 
+  //核心update方法
   @Override
   public int update(String statement, Object parameter) {
     try {
+      //更新之前，dirty标志设置为true
       dirty = true;
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //执行器来执行update
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
@@ -224,25 +234,32 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+//delete方法   2个
   @Override
   public int delete(String statement) {
+    //delete也是调用update
     return update(statement, null);
   }
 
   @Override
   public int delete(String statement, Object parameter) {
+    //delete也是调用update
     return update(statement, parameter);
   }
 
+//commit方法   2个
   @Override
   public void commit() {
     commit(false);
   }
 
+  //核心commit方法
   @Override
   public void commit(boolean force) {
     try {
+      //执行器来执行commit
       executor.commit(isCommitOrRollbackRequired(force));
+      //每次commit之后，dirty标志设置为false
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
@@ -251,15 +268,19 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+//rollback方法   2个
   @Override
   public void rollback() {
     rollback(false);
   }
 
+  //核心rollback
   @Override
   public void rollback(boolean force) {
     try {
+      //使用执行器来执行rollback
       executor.rollback(isCommitOrRollbackRequired(force));
+      //每次执行rollback之后，dirty标志设置为false
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error rolling back transaction.  Cause: " + e, e);
@@ -268,9 +289,11 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+  //核心flushStatements
   @Override
   public List<BatchResult> flushStatements() {
     try {
+      //使用执行器执行flushStatements
       return executor.flushStatements();
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error flushing statements.  Cause: " + e, e);
@@ -279,19 +302,25 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+  //核心close
   @Override
   public void close() {
     try {
+      //使用执行器执行close
       executor.close(isCommitOrRollbackRequired(false));
+      //关闭游标
       closeCursors();
+      //每次close之后，dirty标志设置为false
       dirty = false;
     } finally {
       ErrorContext.instance().reset();
     }
   }
 
+  //核心closeCursors
   private void closeCursors() {
     if (cursorList != null && cursorList.size() != 0) {
+      //遍历cursorList，挨个cursor关闭
       for (Cursor<?> cursor : cursorList) {
         try {
           cursor.close();
@@ -299,6 +328,7 @@ public class DefaultSqlSession implements SqlSession {
           throw ExceptionFactory.wrapException("Error closing cursor.  Cause: " + e, e);
         }
       }
+      //最后清空cursorList
       cursorList.clear();
     }
   }
@@ -310,23 +340,28 @@ public class DefaultSqlSession implements SqlSession {
 
   @Override
   public <T> T getMapper(Class<T> type) {
+    //调用mapperRegistry.getMapper
     return configuration.getMapper(type, this);
   }
 
   @Override
   public Connection getConnection() {
     try {
+      //获取执行器事务中的连接
       return executor.getTransaction().getConnection();
     } catch (SQLException e) {
       throw ExceptionFactory.wrapException("Error getting a new connection.  Cause: " + e, e);
     }
   }
 
+  //核心clearCache
   @Override
   public void clearCache() {
+    //使用执行器执行clearLocalCache    清空localCache和localOutputParameterCache
     executor.clearLocalCache();
   }
 
+  //累计增加cursor，通过ArrayList结构存储
   private <T> void registerCursor(Cursor<T> cursor) {
     if (cursorList == null) {
       cursorList = new ArrayList<>();
@@ -334,32 +369,41 @@ public class DefaultSqlSession implements SqlSession {
     cursorList.add(cursor);
   }
 
+  //检查是否需要强制commit或rollback
   private boolean isCommitOrRollbackRequired(boolean force) {
     return (!autoCommit && dirty) || force;
   }
 
+  //把参数包装成Collection
   private Object wrapCollection(final Object object) {
+    //参数如果是Collection类型，做collection标记
     if (object instanceof Collection) {
+      //map类型为自定义严格map --> StrictMap
       StrictMap<Object> map = new StrictMap<>();
       map.put("collection", object);
+      //参数如果是List类型，再做list标记
       if (object instanceof List) {
         map.put("list", object);
       }
       return map;
     } else if (object != null && object.getClass().isArray()) {
       StrictMap<Object> map = new StrictMap<>();
+      //参数如果是数组类型（Array.isArray()），做array标记
       map.put("array", object);
       return map;
     }
+    //如果参数不属于集合和数组，原样返回
     return object;
   }
 
+  //严格的Map
   public static class StrictMap<V> extends HashMap<String, V> {
 
     private static final long serialVersionUID = -5741767162221585340L;
 
     @Override
     public V get(Object key) {
+      //如果找不到对应的key，直接抛BindingException异常，而不是返回null
       if (!super.containsKey(key)) {
         throw new BindingException("Parameter '" + key + "' not found. Available parameters are " + this.keySet());
       }
