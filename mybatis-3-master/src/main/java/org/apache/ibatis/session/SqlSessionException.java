@@ -18,6 +18,7 @@ package org.apache.ibatis.session;
 import org.apache.ibatis.exceptions.PersistenceException;
 
 /**
+ * SqlSession异常
  * @author Clinton Begin
  */
 public class SqlSessionException extends PersistenceException {
@@ -28,6 +29,8 @@ public class SqlSessionException extends PersistenceException {
     super();
   }
 
+  //最常用，用于判断本地Session为空时抛出
+  // throw new SqlSessionException("Error:  Cannot get connection.  No managed session is started.");
   public SqlSessionException(String message) {
     super(message);
   }

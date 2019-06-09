@@ -16,6 +16,7 @@
 package org.apache.ibatis.session;
 
 /**
+ * selectList方法的入参，分页用，用于记录限制
  * @author Clinton Begin
  */
 public class RowBounds {
@@ -24,9 +25,11 @@ public class RowBounds {
   public static final int NO_ROW_LIMIT = Integer.MAX_VALUE;
   public static final RowBounds DEFAULT = new RowBounds();
 
+  //offset：起始页   limit：每页限制
   private final int offset;
   private final int limit;
 
+  //默认一页Integer.MAX_VALUE条，即不传两个参数时，不进行分页
   public RowBounds() {
     this.offset = NO_ROW_OFFSET;
     this.limit = NO_ROW_LIMIT;
