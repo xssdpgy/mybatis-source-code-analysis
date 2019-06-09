@@ -16,6 +16,7 @@
 package org.apache.ibatis.exceptions;
 
 /**
+ * 结果太多异常，用于selectOne()查出多条时抛出
  * @author Clinton Begin
  */
 public class TooManyResultsException extends PersistenceException {

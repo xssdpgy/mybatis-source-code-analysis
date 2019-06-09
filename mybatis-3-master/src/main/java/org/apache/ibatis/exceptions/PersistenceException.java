@@ -16,6 +16,8 @@
 package org.apache.ibatis.exceptions;
 
 /**
+ * 持久化异常
+ * 该类继承一个废弃的 IbatisException
  * @author Clinton Begin
  */
 @SuppressWarnings("deprecation")

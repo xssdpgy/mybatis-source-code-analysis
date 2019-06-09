@@ -16,6 +16,7 @@
 package org.apache.ibatis.exceptions;
 
 /**
+ * Ibatis异常，所有异常的父类，已废弃
  * @author Clinton Begin
  */
 @Deprecated
