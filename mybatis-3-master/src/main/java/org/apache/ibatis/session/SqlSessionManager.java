@@ -30,6 +30,7 @@ import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
+ * SqlSession管理类 相较于Session接口的默认实现DefaultSqlSession类，另外实现了SqlSessionFactory
  * @author Larry Meadors
  */
 public class SqlSessionManager implements SqlSessionFactory, SqlSession {
@@ -37,10 +38,12 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
   private final SqlSessionFactory sqlSessionFactory;
   private final SqlSession sqlSessionProxy;
 
+  //线程变量，当前线程的 SqlSession 对象
   private final ThreadLocal<SqlSession> localSqlSession = new ThreadLocal<>();
 
   private SqlSessionManager(SqlSessionFactory sqlSessionFactory) {
     this.sqlSessionFactory = sqlSessionFactory;
+    //创建SqlSession的代理对象
     this.sqlSessionProxy = (SqlSession) Proxy.newProxyInstance(
         SqlSessionFactory.class.getClassLoader(),
         new Class[]{SqlSession.class},
@@ -345,19 +348,26 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       final SqlSession sqlSession = SqlSessionManager.this.localSqlSession.get();
+      //如果当前线程中存在 SqlSession 对象，说明是自管理模式，直接调用
       if (sqlSession != null) {
         try {
+          //直接调用
           return method.invoke(sqlSession, args);
         } catch (Throwable t) {
           throw ExceptionUtil.unwrapThrowable(t);
         }
+        //如果当前线程没有 SqlSession 对象，则创建（先打开Session，再调用，最后提交）
       } else {
-        try (SqlSession autoSqlSession = openSession()) {
+        //创建新的SqlSession对象
+        try (SqlSession autoSqlSession = openSession()) { //同时，通过 try 的语法糖，实现结束时，关闭 SqlSession 对象
           try {
+            //执行方法
             final Object result = method.invoke(autoSqlSession, args);
+            //提交SqlSession对象
             autoSqlSession.commit();
             return result;
           } catch (Throwable t) {
+            //发生异常执行回滚并抛出
             autoSqlSession.rollback();
             throw ExceptionUtil.unwrapThrowable(t);
           }
