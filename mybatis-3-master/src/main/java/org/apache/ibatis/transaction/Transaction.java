@@ -19,6 +19,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
+ * 事务接口  包装了一个Connection，包含事务创建，准备，commit,rollback,close方法
+ * Mybatis管理事务是分为两种方式：
+ * (1)使用JDBC的事务管理机制,就是利用java.sql.Connection对象完成对事务的提交
+ * (2)使用MANAGED的事务管理机制，这种机制mybatis自身不会去实现事务管理，而是让程序的容器（JBOSS,WebLogic）来实现对事务的管理
+ *
  * Wraps a database connection.
  * Handles the connection lifecycle that comprises: its creation, preparation, commit/rollback and close.
  *
@@ -27,6 +32,7 @@ import java.sql.SQLException;
 public interface Transaction {
 
   /**
+   * 获取连接
    * Retrieve inner database connection.
    * @return DataBase connection
    * @throws SQLException
@@ -34,24 +40,28 @@ public interface Transaction {
   Connection getConnection() throws SQLException;
 
   /**
+   * 事务提交
    * Commit inner database connection.
    * @throws SQLException
    */
   void commit() throws SQLException;
 
   /**
+   * 事务回滚
    * Rollback inner database connection.
    * @throws SQLException
    */
   void rollback() throws SQLException;
 
   /**
+   * 关闭连接
    * Close inner database connection.
    * @throws SQLException
    */
   void close() throws SQLException;
 
   /**
+   * 获得事务超时时间
    * Get transaction timeout if set.
    * @throws SQLException
    */

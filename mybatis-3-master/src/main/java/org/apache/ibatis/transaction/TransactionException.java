@@ -18,6 +18,7 @@ package org.apache.ibatis.transaction;
 import org.apache.ibatis.exceptions.PersistenceException;
 
 /**
+ * 事务异常，继承自org.apache.ibatis.exceptions.PersistenceException
  * @author Clinton Begin
  */
 public class TransactionException extends PersistenceException {
