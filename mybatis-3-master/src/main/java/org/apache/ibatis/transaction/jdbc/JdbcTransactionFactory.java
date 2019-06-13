@@ -25,6 +25,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 
 /**
+ * JdbcTransaction工厂实现类
  * Creates {@link JdbcTransaction} instances.
  *
  * @author Clinton Begin
@@ -39,11 +40,13 @@ public class JdbcTransactionFactory implements TransactionFactory {
 
   @Override
   public Transaction newTransaction(Connection conn) {
+    //根据 Connection 直接创建JdbcTransaction返回
     return new JdbcTransaction(conn);
   }
 
   @Override
   public Transaction newTransaction(DataSource ds, TransactionIsolationLevel level, boolean autoCommit) {
+    //根据数据源，事务隔离级别和自动提交属性直接创建JdbcTransaction返回
     return new JdbcTransaction(ds, level, autoCommit);
   }
 }

@@ -26,6 +26,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionException;
 
 /**
+ * Jdbc事务。直接利用JDBC的commit和rollback设置，它依赖于从数据源得到的连接来管理事务范围。
  * {@link Transaction} that makes use of the JDBC commit and rollback facilities directly.
  * It relies on the connection retrieved from the dataSource to manage the scope of the transaction.
  * Delays connection retrieval until getConnection() is called.
@@ -39,9 +40,13 @@ public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
 
+  //数据库连接
   protected Connection connection;
+  //数据源
   protected DataSource dataSource;
+  //隔离级别
   protected TransactionIsolationLevel level;
+  //是否自动提交
   protected boolean autoCommit;
 
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit) {
@@ -56,6 +61,7 @@ public class JdbcTransaction implements Transaction {
 
   @Override
   public Connection getConnection() throws SQLException {
+    //数据库连接为空就自动创建
     if (connection == null) {
       openConnection();
     }
@@ -64,6 +70,7 @@ public class JdbcTransaction implements Transaction {
 
   @Override
   public void commit() throws SQLException {
+    //非自动提交，则执行事务提交
     if (connection != null && !connection.getAutoCommit()) {
       if (log.isDebugEnabled()) {
         log.debug("Committing JDBC Connection [" + connection + "]");
@@ -74,6 +81,7 @@ public class JdbcTransaction implements Transaction {
 
   @Override
   public void rollback() throws SQLException {
+    //非自动提交，则执行事务回滚
     if (connection != null && !connection.getAutoCommit()) {
       if (log.isDebugEnabled()) {
         log.debug("Rolling back JDBC Connection [" + connection + "]");
@@ -85,14 +93,20 @@ public class JdbcTransaction implements Transaction {
   @Override
   public void close() throws SQLException {
     if (connection != null) {
+      //重置连接为自动提交
       resetAutoCommit();
       if (log.isDebugEnabled()) {
         log.debug("Closing JDBC Connection [" + connection + "]");
       }
+      //关闭连接
       connection.close();
     }
   }
 
+  /**
+   * 设置指定的自动提交属性
+   * @param desiredAutoCommit 指定的自动提交属性
+   */
   protected void setDesiredAutoCommit(boolean desiredAutoCommit) {
     try {
       if (connection.getAutoCommit() != desiredAutoCommit) {
@@ -110,6 +124,9 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 重置自动提交属性，设置为自动提交
+   */
   protected void resetAutoCommit() {
     try {
       if (!connection.getAutoCommit()) {
@@ -131,14 +148,21 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 获得Connection对象
+   * @throws SQLException
+   */
   protected void openConnection() throws SQLException {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
+    //获得连接
     connection = dataSource.getConnection();
+    //设置事务隔离级别
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+    //指定自动提交属性
     setDesiredAutoCommit(autoCommit);
   }
 
