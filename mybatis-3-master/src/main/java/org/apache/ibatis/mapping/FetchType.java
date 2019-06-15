@@ -16,6 +16,10 @@
 package org.apache.ibatis.mapping;
 
 /**
+ * 加载类型枚举
+ * FetchType.LAZY：懒加载，加载一个实体时，定义懒加载的属性不会马上从数据库中加载
+ * FetchType.EAGER：急加载，加载一个实体时，定义急加载的属性会立即从数据库中加载
+ * FetchType.DEFAULT：默认是立即加载全部查询，即 FetchType.EAGER
  * @author Eduardo Macarron
  */
 public enum FetchType {
