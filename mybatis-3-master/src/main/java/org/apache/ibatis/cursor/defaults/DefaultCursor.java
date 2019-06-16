@@ -29,6 +29,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * MyBatis Cursor的默认实现。非线程安全。
  * This is the default implementation of a MyBatis Cursor.
  * This implementation is not thread safe.
  *
@@ -49,6 +50,7 @@ public class DefaultCursor<T> implements Cursor<T> {
   private CursorStatus status = CursorStatus.CREATED;
   private int indexWithRowBound = -1;
 
+  //Cursor的四种状态枚举
   private enum CursorStatus {
 
     /**
@@ -91,6 +93,8 @@ public class DefaultCursor<T> implements Cursor<T> {
     return rowBounds.getOffset() + cursorIterator.iteratorIndex;
   }
 
+
+  //迭代器
   @Override
   public Iterator<T> iterator() {
     if (iteratorRetrieved) {
