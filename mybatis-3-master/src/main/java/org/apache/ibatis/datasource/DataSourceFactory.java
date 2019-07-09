@@ -19,12 +19,15 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 /**
+ * 数据源工厂    有三种数据源类型    UNPOOLED  POOLED   JNDI
  * @author Clinton Begin
  */
 public interface DataSourceFactory {
 
+  //设置数据源对象属性
   void setProperties(Properties props);
 
+  //得到数据源对象
   DataSource getDataSource();
 
 }
