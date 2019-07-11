@@ -24,21 +24,33 @@ import java.sql.SQLException;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
+ * 池化的Connection连接
  * @author Clinton Begin
  */
 class PooledConnection implements InvocationHandler {
 
+  //关闭Connection方法名
   private static final String CLOSE = "close";
+  //jdk Proxy的接口
   private static final Class<?>[] IFACES = new Class<?>[] { Connection.class };
 
+  //对象标识
   private final int hashCode;
+  //所属的PooledDataSource对象
   private final PooledDataSource dataSource;
+  //真实的Connection
   private final Connection realConnection;
+  //代理的Connection  PooledConnection动态代理的连接
   private final Connection proxyConnection;
+  //从连接池中获取走的时间戳
   private long checkoutTimestamp;
+  //对象创建时间戳
   private long createdTimestamp;
+  //最后使用时间戳
   private long lastUsedTimestamp;
+  //连接的标识   {@link PooledDataSource#expectedConnectionTypeCode}
   private int connectionTypeCode;
+  //是否有效
   private boolean valid;
 
   /**
@@ -54,6 +66,7 @@ class PooledConnection implements InvocationHandler {
     this.createdTimestamp = System.currentTimeMillis();
     this.lastUsedTimestamp = System.currentTimeMillis();
     this.valid = true;
+    // 创建代理的 Connection 对象
     this.proxyConnection = (Connection) Proxy.newProxyInstance(Connection.class.getClassLoader(), IFACES, this);
   }
 
@@ -65,6 +78,7 @@ class PooledConnection implements InvocationHandler {
   }
 
   /**
+   * 判断连接是否有效  ping
    * Method to see if the connection is usable.
    *
    * @return True if the connection is usable
@@ -232,16 +246,19 @@ class PooledConnection implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
+    //判断是否为 CLOSE 方法，则将连接放回到连接池中，避免连接被关闭
     if (CLOSE.hashCode() == methodName.hashCode() && CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
     }
     try {
+      //判断非 Object 的方法，则先检查连接是否可用
       if (!Object.class.equals(method.getDeclaringClass())) {
         // issue #579 toString() should never fail
         // throw an SQLException instead of a Runtime
         checkConnection();
       }
+      //通过反射调用对应的方法
       return method.invoke(realConnection, args);
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
