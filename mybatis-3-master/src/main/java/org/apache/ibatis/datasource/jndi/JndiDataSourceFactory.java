@@ -27,6 +27,8 @@ import org.apache.ibatis.datasource.DataSourceException;
 import org.apache.ibatis.datasource.DataSourceFactory;
 
 /**
+ *JNDI数据源工厂类
+ * 这个数据源的实现是为了使用如 Spring 或应用服务器这类的容器, 容器可以集中或在外部配置数据源,然后放置一个 JNDI 上下文的引用。
  * @author Clinton Begin
  */
 public class JndiDataSourceFactory implements DataSourceFactory {
@@ -41,13 +43,16 @@ public class JndiDataSourceFactory implements DataSourceFactory {
   public void setProperties(Properties properties) {
     try {
       InitialContext initCtx;
+      //获得系统 Properties 对象
       Properties env = getEnvProperties(properties);
+      //创建 InitialContext 对象
       if (env == null) {
         initCtx = new InitialContext();
       } else {
         initCtx = new InitialContext(env);
       }
 
+      //从 InitialContext 上下文中，获取 DataSource 对象
       if (properties.containsKey(INITIAL_CONTEXT)
           && properties.containsKey(DATA_SOURCE)) {
         Context ctx = (Context) initCtx.lookup(properties.getProperty(INITIAL_CONTEXT));
@@ -72,6 +77,7 @@ public class JndiDataSourceFactory implements DataSourceFactory {
     for (Entry<Object, Object> entry : allProps.entrySet()) {
       String key = (String) entry.getKey();
       String value = (String) entry.getValue();
+      //通过名为 “env.” 的前缀直接向初始上下文发送属性
       if (key.startsWith(PREFIX)) {
         if (contextProperties == null) {
           contextProperties = new Properties();
