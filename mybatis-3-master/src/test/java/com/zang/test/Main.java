@@ -25,9 +25,8 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        SqlSessionFactory sqlSessionFactory=null;
-        sqlSessionFactory=new SqlSessionFactoryBuilder().build(inputStream);
-        SqlSession sqlSession=null;
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession sqlSession = null;
         try {
             sqlSession=sqlSessionFactory.openSession();
             RoleMapper roleMapper=sqlSession.getMapper(RoleMapper.class);

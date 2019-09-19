@@ -18,6 +18,7 @@ package org.apache.ibatis.logging;
 import java.lang.reflect.Constructor;
 
 /**
+ * 使用的 Log 的构造方法
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -31,6 +32,7 @@ public final class LogFactory {
   private static Constructor<? extends Log> logConstructor;
 
   static {
+    //逐个尝试实现Log的实现类 初始化logConstructor
     tryImplementation(LogFactory::useSlf4jLogging);
     tryImplementation(LogFactory::useCommonsLogging);
     tryImplementation(LogFactory::useLog4J2Logging);
@@ -49,12 +51,14 @@ public final class LogFactory {
 
   public static Log getLog(String logger) {
     try {
+      //初始化logConstructor
       return logConstructor.newInstance(logger);
     } catch (Throwable t) {
       throw new LogException("Error creating logger for logger " + logger + ".  Cause: " + t, t);
     }
   }
 
+  //设置日志实现时，加锁
   public static synchronized void useCustomLogging(Class<? extends Log> clazz) {
     setImplementation(clazz);
   }
@@ -99,11 +103,14 @@ public final class LogFactory {
 
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
+      //获得参数为 String 的构造方法
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);
+      //创建Log对象
       Log log = candidate.newInstance(LogFactory.class.getName());
       if (log.isDebugEnabled()) {
         log.debug("Logging initialized using '" + implClass + "' adapter.");
       }
+      //创建成功，设置为logConstructor，即可使用
       logConstructor = candidate;
     } catch (Throwable t) {
       throw new LogException("Error setting Log implementation.  Cause: " + t, t);

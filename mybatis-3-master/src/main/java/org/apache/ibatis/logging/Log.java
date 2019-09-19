@@ -16,6 +16,7 @@
 package org.apache.ibatis.logging;
 
 /**
+ * 日志接口  较少用到，实际上常常是结合外部的日志框架
  * @author Clinton Begin
  */
 public interface Log {
