@@ -228,13 +228,19 @@ public class Configuration {
 
   public Configuration() {
     //内置别名注册 注册到typeAliasRegistry  **start**
+
+    //事务工厂别名
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
+
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);
 
     typeAliasRegistry.registerAlias("JNDI", JndiDataSourceFactory.class);
+
+    //数据源
     typeAliasRegistry.registerAlias("POOLED", PooledDataSourceFactory.class);
     typeAliasRegistry.registerAlias("UNPOOLED", UnpooledDataSourceFactory.class);
 
+    //缓存策略
     typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
     typeAliasRegistry.registerAlias("FIFO", FifoCache.class);
     typeAliasRegistry.registerAlias("LRU", LruCache.class);
@@ -246,6 +252,7 @@ public class Configuration {
     typeAliasRegistry.registerAlias("XML", XMLLanguageDriver.class);
     typeAliasRegistry.registerAlias("RAW", RawLanguageDriver.class);
 
+    //日志
     typeAliasRegistry.registerAlias("SLF4J", Slf4jImpl.class);
     typeAliasRegistry.registerAlias("COMMONS_LOGGING", JakartaCommonsLoggingImpl.class);
     typeAliasRegistry.registerAlias("LOG4J", Log4jImpl.class);
@@ -254,6 +261,7 @@ public class Configuration {
     typeAliasRegistry.registerAlias("STDOUT_LOGGING", StdOutImpl.class);
     typeAliasRegistry.registerAlias("NO_LOGGING", NoLoggingImpl.class);
 
+    //动态工厂代理
     typeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
     typeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
     //注册到typeAliasRegistry  **end**
