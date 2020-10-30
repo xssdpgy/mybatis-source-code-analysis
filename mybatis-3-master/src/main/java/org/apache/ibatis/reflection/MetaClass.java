@@ -31,14 +31,16 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public class MetaClass {
 
+  //Reflector的工厂，缓存Reflector对象
   private final ReflectorFactory reflectorFactory;
   private final Reflector reflector;
 
+  //元信息类 构造方法私有
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
     this.reflectorFactory = reflectorFactory;
     this.reflector = reflectorFactory.findForClass(type);
   }
-
+  //public 创建
   public static MetaClass forClass(Class<?> type, ReflectorFactory reflectorFactory) {
     return new MetaClass(type, reflectorFactory);
   }
@@ -132,7 +134,9 @@ public class MetaClass {
   }
 
   public boolean hasSetter(String name) {
+    //解析属性名
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    //hasNext 返回 true，则表明 name 是一个复合属性，迭代调用hasSetter
     if (prop.hasNext()) {
       if (reflector.hasSetter(prop.getName())) {
         MetaClass metaProp = metaClassForProperty(prop.getName());
@@ -141,6 +145,7 @@ public class MetaClass {
         return false;
       }
     } else {
+      //反射器的解析方法
       return reflector.hasSetter(prop.getName());
     }
   }
