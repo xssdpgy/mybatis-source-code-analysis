@@ -125,6 +125,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
       //解析 typeHandlers 节点 处理数据库和java之间的类型转换
       typeHandlerElement(root.evalNode("typeHandlers"));
+
       //解析 mappers 配置
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
@@ -409,25 +410,37 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
+          //获取<package> 节点的name属性
           String mapperPackage = child.getStringAttribute("name");
+          //从指定包中查找mapper接口，并根据mapper接口解析映射配置
           configuration.addMappers(mapperPackage);
         } else {
+          //获取三个属性
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+
+          //resource不为空且其他两者为空，则从指定路径中加载配置
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+            //解析映射文件
             mapperParser.parse();
+
+            //url不为空，且其他两者为空，则通过url加载配置
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
+
+            //mapperClass不为空，且其他两者为空，则通过 mapperClass 解析映射配置
           } else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
+
+            //条件不满足时直接抛异常
           } else {
             throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
           }

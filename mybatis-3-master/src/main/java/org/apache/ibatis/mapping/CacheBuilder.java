@@ -89,18 +89,27 @@ public class CacheBuilder {
     return this;
   }
 
+  /**
+   * Cache实例构建
+   * @return
+   */
   public Cache build() {
+    //设置默认缓存类型和缓存装饰器
     setDefaultImplementations();
+    //通过反射创建缓存
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
+    //仅对内置缓存 PerpetualCache 应用装饰器
     if (PerpetualCache.class.equals(cache.getClass())) {
       for (Class<? extends Cache> decorator : decorators) {
+        //反射创建装饰器实例
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      //对非 LoggingCache 类型的缓存应用 LoggingCache 装饰器
       cache = new LoggingCache(cache);
     }
     return cache;
