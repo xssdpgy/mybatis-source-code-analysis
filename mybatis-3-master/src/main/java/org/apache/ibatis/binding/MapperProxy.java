@@ -27,6 +27,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * mapper代理
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -46,15 +48,19 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      //方法如果是定义在Object 类中的（如equals()），则直接调用
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
+        //默认方法
       } else if (isDefaultMethod(method)) {
         return invokeDefaultMethod(proxy, method, args);
       }
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
     }
+    //缓存中获取MapperMethod对象，computeIfAbsent处理
     final MapperMethod mapperMethod = cachedMapperMethod(method);
+    //SQL执行
     return mapperMethod.execute(sqlSession, args);
   }
 
