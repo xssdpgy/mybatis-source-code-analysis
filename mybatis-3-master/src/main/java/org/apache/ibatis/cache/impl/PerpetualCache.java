@@ -23,6 +23,8 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 基本缓存功能的Cache
+ *
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
@@ -47,6 +49,7 @@ public class PerpetualCache implements Cache {
 
   @Override
   public void putObject(Object key, Object value) {
+    //存储
     cache.put(key, value);
   }
 

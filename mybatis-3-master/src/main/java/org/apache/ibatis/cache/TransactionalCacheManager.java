@@ -21,10 +21,12 @@ import java.util.Map;
 import org.apache.ibatis.cache.decorators.TransactionalCache;
 
 /**
+ * 事务缓存管理器
  * @author Clinton Begin
  */
 public class TransactionalCacheManager {
 
+  //Cache 与 TransactionalCache 的映射关系表
   private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();
 
   public void clear(Cache cache) {

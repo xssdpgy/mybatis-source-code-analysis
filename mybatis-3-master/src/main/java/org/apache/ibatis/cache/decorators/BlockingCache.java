@@ -25,6 +25,9 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 阻塞装饰器
+ * 基于ReentrantLock可重入锁实现
+ *
  * Simple blocking decorator
  *
  * Simple and inefficient version of EhCache's BlockingCache decorator.
@@ -58,16 +61,20 @@ public class BlockingCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     try {
+      //存储缓存项
       delegate.putObject(key, value);
     } finally {
+      //释放锁
       releaseLock(key);
     }
   }
 
   @Override
   public Object getObject(Object key) {
+    //获取锁
     acquireLock(key);
     Object value = delegate.getObject(key);
+    //缓存命中，则释放锁
     if (value != null) {
       releaseLock(key);
     }
@@ -96,9 +103,11 @@ public class BlockingCache implements Cache {
   }
 
   private void acquireLock(Object key) {
+    //computeIfAbsent获取锁
     Lock lock = getLockForKey(key);
     if (timeout > 0) {
       try {
+        //加锁尝试
         boolean acquired = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
         if (!acquired) {
           throw new CacheException("Couldn't get a lock in " + timeout + " for the key " +  key + " at the cache " + delegate.getId());
@@ -107,13 +116,16 @@ public class BlockingCache implements Cache {
         throw new CacheException("Got interrupted while trying to acquire lock for key " + key, e);
       }
     } else {
+      //lock
       lock.lock();
     }
   }
 
   private void releaseLock(Object key) {
+    //获取当前 key 对应的锁
     ReentrantLock lock = locks.get(key);
     if (lock.isHeldByCurrentThread()) {
+      //unlock
       lock.unlock();
     }
   }

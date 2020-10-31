@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * LRU缓存装饰器
  * Lru (least recently used) cache decorator.
  *
  * @author Clinton Begin
@@ -48,6 +49,7 @@ public class LruCache implements Cache {
   }
 
   public void setSize(final int size) {
+    //初始化keyMap，底层继承自LinkedHashMap，并重写其removeEldestEntry方法
     keyMap = new LinkedHashMap<Object, Object>(size, .75F, true) {
       private static final long serialVersionUID = 4267176411845948333L;
 
@@ -55,6 +57,7 @@ public class LruCache implements Cache {
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
         boolean tooBig = size() > size;
         if (tooBig) {
+          //获取将要被移除缓存项的键值
           eldestKey = eldest.getKey();
         }
         return tooBig;
@@ -70,7 +73,9 @@ public class LruCache implements Cache {
 
   @Override
   public Object getObject(Object key) {
+    //刷新key 在keyMap 中的位置
     keyMap.get(key); //touch
+    //从被装饰类中获取相应的缓存项
     return delegate.getObject(key);
   }
 
@@ -91,8 +96,10 @@ public class LruCache implements Cache {
   }
 
   private void cycleKeyList(Object key) {
+    //存储key到keyMap中
     keyMap.put(key, key);
     if (eldestKey != null) {
+      //从被装饰类中移除相应缓存项
       delegate.removeObject(eldestKey);
       eldestKey = null;
     }

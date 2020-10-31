@@ -23,6 +23,7 @@ import java.util.StringJoiner;
 import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
+ * 缓存的key 对象
  * @author Clinton Begin
  */
 public class CacheKey implements Cloneable, Serializable {
@@ -34,11 +35,17 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLYER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+  //乘子，默认37
   private final int multiplier;
+  //cache的hashcode, 更新时 hashcode = multiplier * hashcode + baseHashCode;
   private int hashcode;
+  //校验和
   private long checksum;
+  //影响因子个数
   private int count;
+
   // 8/21/2017 - Sonarlint flags this as needing to be marked transient.  While true if content is not serializable, this is not always true and thus should not be marked transient.
+  //影响因子集合
   private List<Object> updateList;
 
   public CacheKey() {
@@ -57,6 +64,10 @@ public class CacheKey implements Cloneable, Serializable {
     return updateList.size();
   }
 
+  /**
+   * 更新操作时，修改各个属性值
+   * @param object
+   */
   public void update(Object object) {
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
@@ -75,6 +86,11 @@ public class CacheKey implements Cloneable, Serializable {
     }
   }
 
+  /**
+   * 重写equals方法
+   * @param object
+   * @return
+   */
   @Override
   public boolean equals(Object object) {
     if (this == object) {
@@ -96,6 +112,7 @@ public class CacheKey implements Cloneable, Serializable {
       return false;
     }
 
+    //影响因子校验
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);
